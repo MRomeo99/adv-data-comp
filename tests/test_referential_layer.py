@@ -56,10 +56,20 @@ class TestMissingRowsInB:
     def test_warns_when_missing_ratio_is_5_percent_or_less(self, tmp_path, engine):
         # 20 rows in A, B is missing exactly 1 key (5% -> not > 5%, so warning)
         path_a = _write_csv(
-            tmp_path, "a.csv", {"customer_id": list(range(1, 21)), "name": [f"n{i}" for i in range(1, 21)]}
+            tmp_path,
+            "a.csv",
+            {
+                "customer_id": list(range(1, 21)),
+                "name": [f"n{i}" for i in range(1, 21)],
+            },
         )
         path_b = _write_csv(
-            tmp_path, "b.csv", {"customer_id": list(range(2, 21)), "name": [f"n{i}" for i in range(2, 21)]}
+            tmp_path,
+            "b.csv",
+            {
+                "customer_id": list(range(2, 21)),
+                "name": [f"n{i}" for i in range(2, 21)],
+            },
         )
         frame_a = engine.read(path_a)
         frame_b = engine.read(path_b)
@@ -76,10 +86,20 @@ class TestMissingRowsInB:
     def test_critical_when_missing_ratio_exceeds_5_percent(self, tmp_path, engine):
         # 20 rows in A, B missing 3 keys (15% -> critical)
         path_a = _write_csv(
-            tmp_path, "a.csv", {"customer_id": list(range(1, 21)), "name": [f"n{i}" for i in range(1, 21)]}
+            tmp_path,
+            "a.csv",
+            {
+                "customer_id": list(range(1, 21)),
+                "name": [f"n{i}" for i in range(1, 21)],
+            },
         )
         path_b = _write_csv(
-            tmp_path, "b.csv", {"customer_id": list(range(4, 21)), "name": [f"n{i}" for i in range(4, 21)]}
+            tmp_path,
+            "b.csv",
+            {
+                "customer_id": list(range(4, 21)),
+                "name": [f"n{i}" for i in range(4, 21)],
+            },
         )
         frame_a = engine.read(path_a)
         frame_b = engine.read(path_b)
@@ -109,7 +129,9 @@ class TestNewRowsInB:
     def test_warns_on_new_rows_in_b_not_in_a(self, tmp_path, engine):
         path_a = _write_csv(tmp_path, "a.csv", {"customer_id": [1, 2, 3], "name": ["a", "b", "c"]})
         path_b = _write_csv(
-            tmp_path, "b.csv", {"customer_id": [1, 2, 3, 4, 5], "name": ["a", "b", "c", "d", "e"]}
+            tmp_path,
+            "b.csv",
+            {"customer_id": [1, 2, 3, 4, 5], "name": ["a", "b", "c", "d", "e"]},
         )
         frame_a = engine.read(path_a)
         frame_b = engine.read(path_b)
@@ -126,7 +148,9 @@ class TestNewRowsInB:
     def test_new_rows_are_always_warning_even_if_ratio_is_large(self, tmp_path, engine):
         path_a = _write_csv(tmp_path, "a.csv", {"customer_id": [1], "name": ["a"]})
         path_b = _write_csv(
-            tmp_path, "b.csv", {"customer_id": [1, 2, 3, 4, 5, 6], "name": list("abcdef")}
+            tmp_path,
+            "b.csv",
+            {"customer_id": [1, 2, 3, 4, 5, 6], "name": list("abcdef")},
         )
         frame_a = engine.read(path_a)
         frame_b = engine.read(path_b)
@@ -150,7 +174,11 @@ class TestDuplicateKeys:
 
         anomalies = ReferentialLayer().compare(engine, frame_a, frame_b, config)
 
-        dup = [a for a in anomalies if a.evidence.get("file") == "a" and "duplicate_count" in a.evidence]
+        dup = [
+            a
+            for a in anomalies
+            if a.evidence.get("file") == "a" and "duplicate_count" in a.evidence
+        ]
         assert len(dup) == 1
         assert dup[0].severity == "critical"
         assert dup[0].evidence["duplicate_count"] == 1
@@ -158,7 +186,9 @@ class TestDuplicateKeys:
     def test_flags_duplicates_in_file_b(self, tmp_path, engine):
         path_a = _write_csv(tmp_path, "a.csv", {"customer_id": [1, 2], "name": ["a", "b"]})
         path_b = _write_csv(
-            tmp_path, "b.csv", {"customer_id": [1, 2, 2, 2], "name": ["a", "b", "b2", "b3"]}
+            tmp_path,
+            "b.csv",
+            {"customer_id": [1, 2, 2, 2], "name": ["a", "b", "b2", "b3"]},
         )
         frame_a = engine.read(path_a)
         frame_b = engine.read(path_b)
@@ -166,7 +196,11 @@ class TestDuplicateKeys:
 
         anomalies = ReferentialLayer().compare(engine, frame_a, frame_b, config)
 
-        dup = [a for a in anomalies if a.evidence.get("file") == "b" and "duplicate_count" in a.evidence]
+        dup = [
+            a
+            for a in anomalies
+            if a.evidence.get("file") == "b" and "duplicate_count" in a.evidence
+        ]
         assert len(dup) == 1
         assert dup[0].severity == "critical"
         assert dup[0].evidence["duplicate_count"] == 2
@@ -189,10 +223,15 @@ class TestKeyFormatConsistency:
         path_a = _write_csv(
             tmp_path,
             "a.csv",
-            {"customer_id": ["CUST-0001", "CUST-0002", "CUST-0003"], "name": ["a", "b", "c"]},
+            {
+                "customer_id": ["CUST-0001", "CUST-0002", "CUST-0003"],
+                "name": ["a", "b", "c"],
+            },
         )
         path_b = _write_csv(
-            tmp_path, "b.csv", {"customer_id": ["A1001", "A1002", "A1003"], "name": ["a", "b", "c"]}
+            tmp_path,
+            "b.csv",
+            {"customer_id": ["A1001", "A1002", "A1003"], "name": ["a", "b", "c"]},
         )
         frame_a = engine.read(path_a)
         frame_b = engine.read(path_b)
@@ -209,12 +248,18 @@ class TestKeyFormatConsistency:
         path_a = _write_csv(
             tmp_path,
             "a.csv",
-            {"customer_id": ["CUST-0001", "CUST-0002", "CUST-0003"], "name": ["a", "b", "c"]},
+            {
+                "customer_id": ["CUST-0001", "CUST-0002", "CUST-0003"],
+                "name": ["a", "b", "c"],
+            },
         )
         path_b = _write_csv(
             tmp_path,
             "b.csv",
-            {"customer_id": ["CUST-0001", "CUST-0002", "CUST-0004"], "name": ["a", "b", "d"]},
+            {
+                "customer_id": ["CUST-0001", "CUST-0002", "CUST-0004"],
+                "name": ["a", "b", "d"],
+            },
         )
         frame_a = engine.read(path_a)
         frame_b = engine.read(path_b)
@@ -231,12 +276,20 @@ class TestValueDifferencesForMatchedRows:
         path_a = _write_csv(
             tmp_path,
             "a.csv",
-            {"customer_id": [1, 2, 3], "name": ["alice", "bob", "carol"], "revenue": [100.0, 200.0, 300.0]},
+            {
+                "customer_id": [1, 2, 3],
+                "name": ["alice", "bob", "carol"],
+                "revenue": [100.0, 200.0, 300.0],
+            },
         )
         path_b = _write_csv(
             tmp_path,
             "b.csv",
-            {"customer_id": [1, 2, 3], "name": ["alice", "bobby", "carol"], "revenue": [100.0, 200.0, 999.0]},
+            {
+                "customer_id": [1, 2, 3],
+                "name": ["alice", "bobby", "carol"],
+                "revenue": [100.0, 200.0, 999.0],
+            },
         )
         frame_a = engine.read(path_a)
         frame_b = engine.read(path_b)
@@ -244,8 +297,12 @@ class TestValueDifferencesForMatchedRows:
 
         anomalies = ReferentialLayer().compare(engine, frame_a, frame_b, config)
 
-        name_diff = [a for a in anomalies if a.column == "name" and "differing_row_count" in a.evidence]
-        revenue_diff = [a for a in anomalies if a.column == "revenue" and "differing_row_count" in a.evidence]
+        name_diff = [
+            a for a in anomalies if a.column == "name" and "differing_row_count" in a.evidence
+        ]
+        revenue_diff = [
+            a for a in anomalies if a.column == "revenue" and "differing_row_count" in a.evidence
+        ]
 
         assert len(name_diff) == 1
         assert name_diff[0].severity == "warning"
@@ -274,16 +331,14 @@ class TestValueDifferencesForMatchedRows:
 
         anomalies = ReferentialLayer().compare(engine, frame_a, frame_b, config)
 
-        notes_diff = [a for a in anomalies if a.column == "notes" and "differing_row_count" in a.evidence]
+        notes_diff = [
+            a for a in anomalies if a.column == "notes" and "differing_row_count" in a.evidence
+        ]
         assert len(notes_diff) == 0
 
     def test_no_value_diff_anomaly_when_all_matched_rows_are_identical(self, tmp_path, engine):
-        path_a = _write_csv(
-            tmp_path, "a.csv", {"customer_id": [1, 2, 3], "name": ["a", "b", "c"]}
-        )
-        path_b = _write_csv(
-            tmp_path, "b.csv", {"customer_id": [1, 2, 3], "name": ["a", "b", "c"]}
-        )
+        path_a = _write_csv(tmp_path, "a.csv", {"customer_id": [1, 2, 3], "name": ["a", "b", "c"]})
+        path_b = _write_csv(tmp_path, "b.csv", {"customer_id": [1, 2, 3], "name": ["a", "b", "c"]})
         frame_a = engine.read(path_a)
         frame_b = engine.read(path_b)
         config = ComparisonConfig(key="customer_id")

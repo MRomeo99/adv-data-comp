@@ -30,7 +30,7 @@ def _force_string_column(frame, column: str):
     if isinstance(frame, DuckDBFrame):
         new_view = f"{frame.view_name}_str"
         frame.con.sql(
-            f'CREATE OR REPLACE VIEW {new_view} AS '
+            f"CREATE OR REPLACE VIEW {new_view} AS "
             f'SELECT * EXCLUDE ("{column}"), CAST("{column}" AS VARCHAR) AS "{column}" '
             f"FROM {frame.view_name}"
         )
@@ -136,7 +136,9 @@ class TestTypeCoercionCandidates:
     def test_string_column_that_parses_cleanly_as_date_is_flagged(self, tmp_path):
         engine = PolarsEngine()
         path_a = _write_csv(
-            tmp_path, "a.csv", {"legacy_date": ["2024-01-01", "2024-02-15", "2024-03-10"]}
+            tmp_path,
+            "a.csv",
+            {"legacy_date": ["2024-01-01", "2024-02-15", "2024-03-10"]},
         )
         path_b = _write_csv(tmp_path, "b.csv", {"other_col": [1, 2, 3]})
         frame_a = engine.read(path_a)
@@ -198,9 +200,7 @@ class TestUnitDifferenceDetection:
 class TestDuplicateSemanticColumns:
     def test_flags_full_name_as_possible_split_of_first_and_last_name(self, tmp_path, engine):
         path_a = _write_csv(tmp_path, "a.csv", {"full_name": ["Alice Smith"]})
-        path_b = _write_csv(
-            tmp_path, "b.csv", {"first_name": ["Alice"], "last_name": ["Smith"]}
-        )
+        path_b = _write_csv(tmp_path, "b.csv", {"first_name": ["Alice"], "last_name": ["Smith"]})
         frame_a = engine.read(path_a)
         frame_b = engine.read(path_b)
 
@@ -211,7 +211,10 @@ class TestDuplicateSemanticColumns:
         assert len(dup_anomalies) == 1
         assert dup_anomalies[0].column == "full_name"
         assert dup_anomalies[0].evidence["column_a"] == "full_name"
-        assert set(dup_anomalies[0].evidence["candidate_group"]) == {"first_name", "last_name"}
+        assert set(dup_anomalies[0].evidence["candidate_group"]) == {
+            "first_name",
+            "last_name",
+        }
         assert dup_anomalies[0].severity == "suggestion"
 
     def test_does_not_flag_when_only_one_candidate_column_exists(self, tmp_path):

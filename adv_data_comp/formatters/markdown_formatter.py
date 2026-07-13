@@ -18,7 +18,12 @@ _LABEL = {
 }
 
 # Critical always first, then warning, info, suggestion.
-_SEVERITY_ORDER = [Severity.CRITICAL, Severity.WARNING, Severity.INFO, Severity.SUGGESTION]
+_SEVERITY_ORDER = [
+    Severity.CRITICAL,
+    Severity.WARNING,
+    Severity.INFO,
+    Severity.SUGGESTION,
+]
 
 
 class MarkdownFormatter(AbstractFormatter):

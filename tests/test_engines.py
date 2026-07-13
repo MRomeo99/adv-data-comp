@@ -96,7 +96,9 @@ class TestProfileColumn:
 class TestFindMissingKeys:
     def test_returns_rows_in_a_whose_key_is_absent_from_b(self, tmp_path, engine):
         path_a = _write_csv(
-            tmp_path, "a.csv", {"customer_id": [1, 2, 3], "name": ["alice", "bob", "carol"]}
+            tmp_path,
+            "a.csv",
+            {"customer_id": [1, 2, 3], "name": ["alice", "bob", "carol"]},
         )
         path_b = _write_csv(tmp_path, "b.csv", {"customer_id": [1, 3], "name": ["alice", "carol"]})
 

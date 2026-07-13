@@ -26,7 +26,12 @@ class TestAnomaly:
 
     def test_rejects_an_invalid_severity(self):
         with pytest.raises(ValidationError):
-            Anomaly(layer="statistical", severity="catastrophic", column="revenue", message="x")
+            Anomaly(
+                layer="statistical",
+                severity="catastrophic",
+                column="revenue",
+                message="x",
+            )
 
     def test_accepts_arbitrary_evidence_payload(self):
         anomaly = Anomaly(
@@ -55,12 +60,22 @@ class TestComparisonResult:
             ]
         )
 
-        assert result.summary == {"critical": 2, "warning": 1, "info": 1, "suggestion": 1}
+        assert result.summary == {
+            "critical": 2,
+            "warning": 1,
+            "info": 1,
+            "suggestion": 1,
+        }
 
     def test_summary_defaults_missing_severities_to_zero(self):
         result = ComparisonResult(anomalies=[self._anomaly("info")])
 
-        assert result.summary == {"critical": 0, "warning": 0, "info": 1, "suggestion": 0}
+        assert result.summary == {
+            "critical": 0,
+            "warning": 0,
+            "info": 1,
+            "suggestion": 0,
+        }
 
     def test_critical_property_filters_to_critical_only(self):
         critical = self._anomaly("critical")

@@ -5,6 +5,7 @@ import uuid
 from pathlib import Path
 
 from adv_data_comp.config import ComparisonConfig
+from adv_data_comp.engine.base import AbstractEngine, EngineFrame
 from adv_data_comp.engine.selector import select_engine
 from adv_data_comp.layers.base import AbstractLayer
 from adv_data_comp.layers.format_layer import FormatLayer
@@ -12,7 +13,14 @@ from adv_data_comp.layers.referential_layer import ReferentialLayer
 from adv_data_comp.layers.schema_layer import SchemaLayer
 from adv_data_comp.layers.semantic_layer import SemanticLayer
 from adv_data_comp.layers.statistical_layer import StatisticalLayer
-from adv_data_comp.models import Anomaly, ComparisonMeta, ComparisonResult, FileMeta, Severity
+from adv_data_comp.models import (
+    Anomaly,
+    ComparisonMeta,
+    ComparisonResult,
+    FileMeta,
+    Layer,
+    Severity,
+)
 
 # Layers whose checks depend on knowing which columns the semantic layer
 # fuzzy-matched (so they can compare beyond exact-name matches).
@@ -23,7 +31,7 @@ class Comparator:
     def __init__(self, config: ComparisonConfig | None = None) -> None:
         self.config = config or ComparisonConfig()
 
-    def _build_layer(self, name: str, path_a: Path, path_b: Path) -> AbstractLayer:
+    def _build_layer(self, name: Layer, path_a: Path, path_b: Path) -> AbstractLayer:
         if name == "format":
             return FormatLayer(path_a, path_b)
         if name == "schema":
@@ -45,7 +53,7 @@ class Comparator:
         frame_b = engine.read(path_b)
 
         anomalies: list[Anomaly] = []
-        layers_run: list[str] = []
+        layers_run: list[Layer] = []
         column_mapping: dict[str, str] = {}
 
         for layer_name in self.config.layers:
@@ -89,7 +97,7 @@ class Comparator:
         return ComparisonResult(anomalies=anomalies, meta=meta)
 
 
-def _file_meta(engine, frame, path: Path) -> FileMeta:
+def _file_meta(engine: AbstractEngine, frame: EngineFrame, path: Path) -> FileMeta:
     return FileMeta(
         path=str(path),
         format=path.suffix.lower().lstrip("."),

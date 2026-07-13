@@ -75,13 +75,19 @@ class ComparisonResult(BaseModel):
         return content
 
     def to_json(self, path: str) -> str:
-        return self._render_and_write(("adv_data_comp.formatters.json_formatter", "JsonFormatter"), path)
+        return self._render_and_write(
+            ("adv_data_comp.formatters.json_formatter", "JsonFormatter"), path
+        )
 
     def to_yaml(self, path: str) -> str:
-        return self._render_and_write(("adv_data_comp.formatters.yaml_formatter", "YamlFormatter"), path)
+        return self._render_and_write(
+            ("adv_data_comp.formatters.yaml_formatter", "YamlFormatter"), path
+        )
 
     def to_html(self, path: str) -> str:
-        return self._render_and_write(("adv_data_comp.formatters.html_formatter", "HtmlFormatter"), path)
+        return self._render_and_write(
+            ("adv_data_comp.formatters.html_formatter", "HtmlFormatter"), path
+        )
 
     def to_markdown(self, path: str) -> str:
         return self._render_and_write(
@@ -89,10 +95,14 @@ class ComparisonResult(BaseModel):
         )
 
     def to_csv(self, path: str) -> str:
-        return self._render_and_write(("adv_data_comp.formatters.csv_formatter", "CsvFormatter"), path)
+        return self._render_and_write(
+            ("adv_data_comp.formatters.csv_formatter", "CsvFormatter"), path
+        )
 
     def to_dbt_yaml(self, path: str) -> str:
-        return self._render_and_write(("adv_data_comp.formatters.dbt_formatter", "DbtFormatter"), path)
+        return self._render_and_write(
+            ("adv_data_comp.formatters.dbt_formatter", "DbtFormatter"), path
+        )
 
 
 ColumnCategory = Literal["int", "float", "string", "bool", "date", "datetime", "other"]

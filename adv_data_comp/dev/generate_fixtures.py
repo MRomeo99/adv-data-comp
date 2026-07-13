@@ -43,9 +43,7 @@ def _same_schema_diff_values(output_dir: Path) -> None:
 def _diff_schema_same_data(output_dir: Path) -> None:
     df_a = pl.DataFrame({"customer_id": list(range(1, 11)), "revenue": [1.0] * 10})
     # File B: customer_id becomes a string column - schema layer bait.
-    df_b = pl.DataFrame(
-        {"customer_id": [str(i) for i in range(1, 11)], "revenue": [1.0] * 10}
-    )
+    df_b = pl.DataFrame({"customer_id": [str(i) for i in range(1, 11)], "revenue": [1.0] * 10})
     df_a.write_parquet(output_dir / "diff_schema_same_data.parquet")
     df_b.write_csv(output_dir / "diff_schema_same_data.csv")
 

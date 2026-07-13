@@ -20,7 +20,8 @@ class TerminalFormatter(AbstractFormatter):
     """Renders a ComparisonResult as Rich-formatted terminal output (as a string)."""
 
     def format(self, result: ComparisonResult) -> str:
-        console = Console(file=io.StringIO(), force_terminal=True, width=100)
+        buffer = io.StringIO()
+        console = Console(file=buffer, force_terminal=True, width=100)
 
         self._render_header(console, result)
         console.print()
@@ -33,7 +34,7 @@ class TerminalFormatter(AbstractFormatter):
         console.print()
         self._render_footer(console, result)
 
-        return console.file.getvalue()  # type: ignore[union-attr]
+        return buffer.getvalue()
 
     def _render_header(self, console: Console, result: ComparisonResult) -> None:
         console.rule("[bold]adv-data-comp[/bold]", align="left")

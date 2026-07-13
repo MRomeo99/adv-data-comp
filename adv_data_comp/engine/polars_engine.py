@@ -5,9 +5,9 @@ from pathlib import Path
 import polars as pl
 
 from adv_data_comp.engine.base import AbstractEngine, EngineFrame
-from adv_data_comp.models import ColumnProfile, ColumnType
+from adv_data_comp.models import ColumnCategory, ColumnProfile, ColumnType
 
-_CATEGORY_BY_POLARS_BASE = {
+_CATEGORY_BY_POLARS_BASE: dict[str, ColumnCategory] = {
     "Int8": "int",
     "Int16": "int",
     "Int32": "int",
@@ -26,7 +26,7 @@ _CATEGORY_BY_POLARS_BASE = {
 }
 
 
-def _categorize_polars_dtype(dtype: pl.DataType) -> str:
+def _categorize_polars_dtype(dtype: pl.DataType) -> ColumnCategory:
     return _CATEGORY_BY_POLARS_BASE.get(dtype.base_type().__name__, "other")
 
 
@@ -57,8 +57,11 @@ class PolarsEngine(AbstractEngine):
         max_value = series.max() if row_count > 0 else None
         raw_mean = series.mean() if is_numeric and row_count > 0 else None
         raw_stddev = series.std() if is_numeric and row_count > 1 else None
-        mean = float(raw_mean) if raw_mean is not None else None
-        stddev = float(raw_stddev) if raw_stddev is not None else None
+        # series.mean()/.std() are typed over every possible dtype (including
+        # date/timedelta/bytes), but the `is_numeric` guard above means these
+        # are always plain numbers here.
+        mean = float(raw_mean) if raw_mean is not None else None  # type: ignore[arg-type]
+        stddev = float(raw_stddev) if raw_stddev is not None else None  # type: ignore[arg-type]
 
         return ColumnProfile(
             name=column,

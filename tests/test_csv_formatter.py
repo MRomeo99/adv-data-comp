@@ -48,7 +48,13 @@ class TestCsvFormatter:
     def test_evidence_cell_round_trips_via_json(self):
         result = ComparisonResult(
             anomalies=[
-                _anomaly("warning", column="revenue", value_a=0.021, value_b=0.148, delta=0.127),
+                _anomaly(
+                    "warning",
+                    column="revenue",
+                    value_a=0.021,
+                    value_b=0.148,
+                    delta=0.127,
+                ),
             ]
         )
 

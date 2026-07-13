@@ -62,7 +62,11 @@ class ReferentialLayer(AbstractLayer):
         return anomalies
 
     def _missing_rows(
-        self, engine: AbstractEngine, frame_a: EngineFrame, frame_b: EngineFrame, key: str
+        self,
+        engine: AbstractEngine,
+        frame_a: EngineFrame,
+        frame_b: EngineFrame,
+        key: str,
     ) -> list[Anomaly]:
         missing = engine.find_missing_keys(frame_a, frame_b, key)
         count = engine.row_count(missing)
@@ -84,7 +88,11 @@ class ReferentialLayer(AbstractLayer):
         ]
 
     def _new_rows(
-        self, engine: AbstractEngine, frame_a: EngineFrame, frame_b: EngineFrame, key: str
+        self,
+        engine: AbstractEngine,
+        frame_a: EngineFrame,
+        frame_b: EngineFrame,
+        key: str,
     ) -> list[Anomaly]:
         new = engine.find_missing_keys(frame_b, frame_a, key)
         count = engine.row_count(new)
@@ -102,7 +110,11 @@ class ReferentialLayer(AbstractLayer):
         ]
 
     def _duplicate_keys(
-        self, engine: AbstractEngine, frame_a: EngineFrame, frame_b: EngineFrame, key: str
+        self,
+        engine: AbstractEngine,
+        frame_a: EngineFrame,
+        frame_b: EngineFrame,
+        key: str,
     ) -> list[Anomaly]:
         anomalies: list[Anomaly] = []
         for label, frame in (("a", frame_a), ("b", frame_b)):
@@ -135,7 +147,11 @@ class ReferentialLayer(AbstractLayer):
         return frame[key].drop_nulls().head(_MAX_FORMAT_SAMPLE).to_list()
 
     def _format_consistency(
-        self, engine: AbstractEngine, frame_a: EngineFrame, frame_b: EngineFrame, key: str
+        self,
+        engine: AbstractEngine,
+        frame_a: EngineFrame,
+        frame_b: EngineFrame,
+        key: str,
     ) -> list[Anomaly]:
         samples_a = self._sample_key_values(frame_a, key)
         samples_b = self._sample_key_values(frame_b, key)
@@ -164,14 +180,22 @@ class ReferentialLayer(AbstractLayer):
         return []
 
     def _shared_non_key_columns(
-        self, engine: AbstractEngine, frame_a: EngineFrame, frame_b: EngineFrame, key: str
+        self,
+        engine: AbstractEngine,
+        frame_a: EngineFrame,
+        frame_b: EngineFrame,
+        key: str,
     ) -> list[str]:
         columns_a = list(engine.schema(frame_a).keys())
         columns_b = set(engine.schema(frame_b).keys())
         return [c for c in columns_a if c != key and c in columns_b]
 
     def _value_differences(
-        self, engine: AbstractEngine, frame_a: EngineFrame, frame_b: EngineFrame, key: str
+        self,
+        engine: AbstractEngine,
+        frame_a: EngineFrame,
+        frame_b: EngineFrame,
+        key: str,
     ) -> list[Anomaly]:
         columns = self._shared_non_key_columns(engine, frame_a, frame_b, key)
         if not columns:

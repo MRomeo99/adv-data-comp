@@ -42,6 +42,15 @@ _AVG_STRLEN_REL_DELTA = 0.10
 _DATE_GAP_MULTIPLE = 2.0
 
 
+def _fetchone_scalar(cursor) -> Any:
+    """Unwraps a single-column, single-row DuckDB result. Every call site
+    uses an aggregate (COUNT/AVG/...), which always returns exactly one
+    row."""
+    row = cursor.fetchone()
+    assert row is not None
+    return row[0]
+
+
 class StatisticalLayer(AbstractLayer):
     """Layer 4 — compares value distributions per matched column.
 
@@ -86,9 +95,7 @@ class StatisticalLayer(AbstractLayer):
                     self._check_string_column(engine, frame_a, frame_b, name_a, name_b)
                 )
             elif category_a in _DATE_CATEGORIES and category_b in _DATE_CATEGORIES:
-                anomalies.extend(
-                    self._check_date_column(engine, frame_a, frame_b, name_a, name_b)
-                )
+                anomalies.extend(self._check_date_column(engine, frame_a, frame_b, name_a, name_b))
             # Mismatched type families are left to the schema layer to flag.
 
         return anomalies
@@ -126,7 +133,9 @@ class StatisticalLayer(AbstractLayer):
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _check_row_count(engine: AbstractEngine, frame_a: EngineFrame, frame_b: EngineFrame) -> list[Anomaly]:
+    def _check_row_count(
+        engine: AbstractEngine, frame_a: EngineFrame, frame_b: EngineFrame
+    ) -> list[Anomaly]:
         rows_a = engine.row_count(frame_a)
         rows_b = engine.row_count(frame_b)
         denom = rows_a or rows_b
@@ -249,7 +258,10 @@ class StatisticalLayer(AbstractLayer):
                             f"Stddev changed by more than {_STDDEV_REL_DELTA:.0%} — "
                             f"indicates distribution shift ({profile_a.stddev} (A) vs {profile_b.stddev} (B))"
                         ),
-                        evidence={"stddev_a": profile_a.stddev, "stddev_b": profile_b.stddev},
+                        evidence={
+                            "stddev_a": profile_a.stddev,
+                            "stddev_b": profile_b.stddev,
+                        },
                     )
                 )
 
@@ -324,22 +336,28 @@ class StatisticalLayer(AbstractLayer):
         return anomalies
 
     @staticmethod
-    def _outlier_count(frame: EngineFrame, column: str, mean: float | None, stddev: float | None) -> int:
+    def _outlier_count(
+        frame: EngineFrame, column: str, mean: float | None, stddev: float | None
+    ) -> int:
         if not stddev or mean is None:
             return 0
         if isinstance(frame, DuckDBFrame):
-            return frame.con.sql(
-                f'SELECT COUNT(*) FILTER (WHERE abs("{column}" - {mean}) > {3 * stddev}) '
-                f"FROM {frame.view_name}"
-            ).fetchone()[0]
+            return _fetchone_scalar(
+                frame.con.sql(
+                    f'SELECT COUNT(*) FILTER (WHERE abs("{column}" - {mean}) > {3 * stddev}) '
+                    f"FROM {frame.view_name}"
+                )
+            )
         return frame.select(((pl.col(column) - mean).abs() > 3 * stddev).sum()).item()
 
     @staticmethod
     def _zero_count(frame: EngineFrame, column: str) -> int:
         if isinstance(frame, DuckDBFrame):
-            return frame.con.sql(
-                f'SELECT COUNT(*) FILTER (WHERE "{column}" = 0) FROM {frame.view_name}'
-            ).fetchone()[0]
+            return _fetchone_scalar(
+                frame.con.sql(
+                    f'SELECT COUNT(*) FILTER (WHERE "{column}" = 0) FROM {frame.view_name}'
+                )
+            )
         return frame.select((pl.col(column) == 0).sum()).item()
 
     # ------------------------------------------------------------------
@@ -370,7 +388,11 @@ class StatisticalLayer(AbstractLayer):
                         severity=Severity.INFO,
                         column=label,
                         message=f"Distinct value count differs: {da} (A) vs {db} (B)",
-                        evidence={"distinct_a": da, "distinct_b": db, "delta_pct": rel_delta},
+                        evidence={
+                            "distinct_a": da,
+                            "distinct_b": db,
+                            "delta_pct": rel_delta,
+                        },
                     )
                 )
 
@@ -430,7 +452,11 @@ class StatisticalLayer(AbstractLayer):
                         severity=Severity.WARNING,
                         column=label,
                         message=f"Top-10 most frequent values shifted (overlap {overlap:.0%})",
-                        evidence={"top10_a": top_a, "top10_b": top_b, "overlap": overlap},
+                        evidence={
+                            "top10_a": top_a,
+                            "top10_b": top_b,
+                            "overlap": overlap,
+                        },
                     )
                 )
 
@@ -439,9 +465,9 @@ class StatisticalLayer(AbstractLayer):
     @staticmethod
     def _avg_string_length(frame: EngineFrame, column: str) -> float | None:
         if isinstance(frame, DuckDBFrame):
-            result = frame.con.sql(
-                f'SELECT AVG(LENGTH("{column}")) FROM {frame.view_name}'
-            ).fetchone()[0]
+            result = _fetchone_scalar(
+                frame.con.sql(f'SELECT AVG(LENGTH("{column}")) FROM {frame.view_name}')
+            )
             return float(result) if result is not None else None
         if frame.height == 0:
             return None
@@ -451,9 +477,11 @@ class StatisticalLayer(AbstractLayer):
     @staticmethod
     def _empty_string_count(frame: EngineFrame, column: str) -> int:
         if isinstance(frame, DuckDBFrame):
-            return frame.con.sql(
-                f"SELECT COUNT(*) FILTER (WHERE \"{column}\" = '') FROM {frame.view_name}"
-            ).fetchone()[0]
+            return _fetchone_scalar(
+                frame.con.sql(
+                    f"SELECT COUNT(*) FILTER (WHERE \"{column}\" = '') FROM {frame.view_name}"
+                )
+            )
         return frame.select((pl.col(column) == "").sum()).item()
 
     @staticmethod
@@ -551,7 +579,7 @@ class StatisticalLayer(AbstractLayer):
         counts: dict[Any, int] = {}
         for delta in deltas:
             counts[delta] = counts.get(delta, 0) + 1
-        expected_delta = max(counts, key=counts.get)
+        expected_delta = max(counts, key=lambda d: counts[d])
 
         gaps: list[dict[str, Any]] = []
         for i, delta in enumerate(deltas):

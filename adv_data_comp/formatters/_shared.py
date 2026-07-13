@@ -43,9 +43,7 @@ def build_envelope(result: ComparisonResult) -> dict[str, Any]:
         layers_run = None
         runtime_seconds = None
 
-    anomalies = [
-        anomaly.model_dump(mode="json") for anomaly in result.anomalies
-    ]
+    anomalies = [anomaly.model_dump(mode="json") for anomaly in result.anomalies]
 
     return {
         "comparison_id": comparison_id,

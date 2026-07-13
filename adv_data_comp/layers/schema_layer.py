@@ -42,9 +42,7 @@ class SchemaLayer(AbstractLayer):
         anomalies.extend(self._check_column_count(schema_a, schema_b))
         anomalies.extend(self._check_missing_and_extra_columns(names_a, names_b, set_a, set_b))
         anomalies.extend(self._check_type_differences(schema_a, schema_b, set_a, set_b, names_a))
-        anomalies.extend(
-            self._check_nullability(engine, frame_a, frame_b, set_a, set_b, names_a)
-        )
+        anomalies.extend(self._check_nullability(engine, frame_a, frame_b, set_a, set_b, names_a))
         anomalies.extend(self._check_column_order(names_a, names_b, set_a, set_b))
 
         return anomalies
@@ -151,8 +149,7 @@ class SchemaLayer(AbstractLayer):
                         severity=severity,
                         column=name,
                         message=(
-                            f"Null rate for '{name}' shifted from "
-                            f"{rate_a:.1%} to {rate_b:.1%}"
+                            f"Null rate for '{name}' shifted from " f"{rate_a:.1%} to {rate_b:.1%}"
                         ),
                         evidence={
                             "null_rate_a": rate_a,

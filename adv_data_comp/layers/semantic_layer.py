@@ -28,7 +28,19 @@ _TOKEN_FUZZY_MATCH_THRESHOLD = 0.65
 _DATE_FORMATS = ["%Y-%m-%d", "%m/%d/%Y"]
 
 _UNIT_SUFFIXES = sorted(
-    ["_usd", "_eur", "_gbp", "_pct", "_percent", "_kg", "_lb", "_lbs", "_cm", "_m", "_ft"],
+    [
+        "_usd",
+        "_eur",
+        "_gbp",
+        "_pct",
+        "_percent",
+        "_kg",
+        "_lb",
+        "_lbs",
+        "_cm",
+        "_m",
+        "_ft",
+    ],
     key=len,
     reverse=True,
 )
@@ -156,8 +168,7 @@ def _sample_values(frame: EngineFrame, column: str) -> list:
     """
     if isinstance(frame, DuckDBFrame):
         rows = frame.con.sql(
-            f'SELECT "{column}" FROM {frame.view_name} '
-            f'WHERE "{column}" IS NOT NULL LIMIT 20'
+            f'SELECT "{column}" FROM {frame.view_name} ' f'WHERE "{column}" IS NOT NULL LIMIT 20'
         ).fetchall()
         return [row[0] for row in rows]
     # Polars frame.
@@ -200,9 +211,7 @@ class SemanticLayer(AbstractLayer):
 
         anomalies: list[Anomaly] = []
         anomalies.extend(self._fuzzy_name_matches(unmatched_a, unmatched_b, config))
-        anomalies.extend(
-            self._type_coercion_candidates(frame_a, unmatched_a, schema_a)
-        )
+        anomalies.extend(self._type_coercion_candidates(frame_a, unmatched_a, schema_a))
         anomalies.extend(self._unit_difference_candidates(unmatched_a, unmatched_b))
         anomalies.extend(self._duplicate_semantic_groups(unmatched_a, unmatched_b))
         return anomalies

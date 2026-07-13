@@ -57,7 +57,15 @@ class TestFailOnCritical:
 
         result = runner.invoke(
             app,
-            ["compare", str(file_a), str(file_b), "--layers", "referential", "--key", "id"],
+            [
+                "compare",
+                str(file_a),
+                str(file_b),
+                "--layers",
+                "referential",
+                "--key",
+                "id",
+            ],
         )
 
         assert result.exit_code == 0
@@ -178,7 +186,15 @@ class TestKeyFlag:
 
         with_key = runner.invoke(
             app,
-            ["compare", str(file_a), str(file_b), "--layers", "referential", "--key", "id"],
+            [
+                "compare",
+                str(file_a),
+                str(file_b),
+                "--layers",
+                "referential",
+                "--key",
+                "id",
+            ],
         )
         without_key = runner.invoke(
             app,

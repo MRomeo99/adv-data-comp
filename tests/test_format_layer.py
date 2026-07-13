@@ -215,10 +215,12 @@ class TestDateFormat:
         # sides (collapsing the very format difference this check looks for);
         # a month-name format reliably stays VARCHAR/string in both engines.
         path_a.write_text(
-            "id,signup_date\n1,2024-01-15\n2,2024-02-20\n3,2024-03-01\n", encoding="utf-8"
+            "id,signup_date\n1,2024-01-15\n2,2024-02-20\n3,2024-03-01\n",
+            encoding="utf-8",
         )
         path_b.write_text(
-            "id,signup_date\n1,Jan 15 2024\n2,Feb 20 2024\n3,Mar 01 2024\n", encoding="utf-8"
+            "id,signup_date\n1,Jan 15 2024\n2,Feb 20 2024\n3,Mar 01 2024\n",
+            encoding="utf-8",
         )
 
         frame_a = engine.read(path_a)
@@ -241,12 +243,8 @@ class TestQuotedVsUnquotedStrings:
     def test_flags_quoting_convention_difference(self, tmp_path, engine, config):
         path_a = tmp_path / "a.csv"
         path_b = tmp_path / "b.csv"
-        path_a.write_text(
-            'id,name\n1,"alice"\n2,"bob"\n3,"carol"\n4,"dave"\n', encoding="utf-8"
-        )
-        path_b.write_text(
-            "id,name\n1,alice\n2,bob\n3,carol\n4,dave\n", encoding="utf-8"
-        )
+        path_a.write_text('id,name\n1,"alice"\n2,"bob"\n3,"carol"\n4,"dave"\n', encoding="utf-8")
+        path_b.write_text("id,name\n1,alice\n2,bob\n3,carol\n4,dave\n", encoding="utf-8")
 
         frame_a = engine.read(path_a)
         frame_b = engine.read(path_b)

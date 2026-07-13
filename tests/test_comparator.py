@@ -1,7 +1,6 @@
 import uuid
 
 import polars as pl
-import pytest
 
 from adv_data_comp.comparator import Comparator
 from adv_data_comp.config import ComparisonConfig
@@ -55,7 +54,9 @@ class TestComparator:
         result = Comparator(config).compare(file_a, file_b)
 
         assert result.meta.layers_run == ["schema", "referential"]
-        assert any(a.layer == "schema" and "simulated layer failure" in a.message for a in result.anomalies)
+        assert any(
+            a.layer == "schema" and "simulated layer failure" in a.message for a in result.anomalies
+        )
         assert any(a.layer == "referential" for a in result.anomalies)
 
     def test_severity_filter_only_returns_matching_severities(self, tmp_path):

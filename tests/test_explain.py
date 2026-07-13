@@ -37,7 +37,8 @@ class FakeClient:
         if layer in self.raise_for_layers:
             raise RuntimeError(f"boom for layer {layer}")
         return self.responses.get(
-            layer, {i: f"explanation for {a.column}" for i, a in enumerate(anomalies_batch)}
+            layer,
+            {i: f"explanation for {a.column}" for i, a in enumerate(anomalies_batch)},
         )
 
 

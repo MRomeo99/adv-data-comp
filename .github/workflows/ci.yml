@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: test (python ${{ matrix.python-version }}, ${{ matrix.engine }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [polars, duckdb]
+        python-version: ["3.11", "3.12"]
+    env:
+      # Forces select_engine() to always pick DuckDB for the "duckdb" leg,
+      # per CLAUDE.md's CI test matrix requirement (individual layer/engine
+      # tests already parametrize over both engines directly regardless).
+      ADV_DATA_COMP_MEMORY_THRESHOLD_MB: ${{ matrix.engine == 'duckdb' && '0' || '500' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Run tests with coverage
+        run: pytest --cov=adv_data_comp --cov-report=term-missing --cov-report=xml --cov-fail-under=85
+
+      - name: Upload coverage
+        if: matrix.engine == 'polars' && matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: ruff
+        run: ruff check .
+
+      - name: black --check
+        run: black --check .
+
+      - name: mypy
+        run: mypy adv_data_comp cli

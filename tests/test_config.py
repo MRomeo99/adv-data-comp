@@ -5,7 +5,13 @@ class TestComparisonConfig:
     def test_defaults_run_all_five_layers(self):
         config = ComparisonConfig()
 
-        assert config.layers == ["format", "schema", "semantic", "statistical", "referential"]
+        assert config.layers == [
+            "format",
+            "schema",
+            "semantic",
+            "statistical",
+            "referential",
+        ]
         assert config.key is None
         assert config.fuzzy_threshold == 0.80
         assert config.memory_threshold_mb == 500

@@ -125,9 +125,7 @@ class TestMissingAndExtraColumns:
 
 class TestColumnTypeDifferences:
     def test_type_category_change_is_critical(self, tmp_path, engine, config, layer):
-        frame_a = engine.read(
-            _write_csv(tmp_path, "a.csv", {"id": [1, 2, 3], "amount": [1, 2, 3]})
-        )
+        frame_a = engine.read(_write_csv(tmp_path, "a.csv", {"id": [1, 2, 3], "amount": [1, 2, 3]}))
         frame_b = engine.read(
             _write_csv(tmp_path, "b.csv", {"id": [1, 2, 3], "amount": ["x", "y", "z"]})
         )
@@ -233,12 +231,8 @@ class TestColumnOrderDifferences:
     def test_same_columns_different_order_emits_single_info_anomaly(
         self, tmp_path, engine, config, layer
     ):
-        frame_a = engine.read(
-            _write_csv(tmp_path, "a.csv", {"a": [1], "b": [2], "c": [3]})
-        )
-        frame_b = engine.read(
-            _write_csv(tmp_path, "b.csv", {"c": [3], "a": [1], "b": [2]})
-        )
+        frame_a = engine.read(_write_csv(tmp_path, "a.csv", {"a": [1], "b": [2], "c": [3]}))
+        frame_b = engine.read(_write_csv(tmp_path, "b.csv", {"c": [3], "a": [1], "b": [2]}))
 
         anomalies = layer.compare(engine, frame_a, frame_b, config)
 
@@ -252,24 +246,16 @@ class TestColumnOrderDifferences:
         assert anomaly.evidence["order_b"] == ["c", "a", "b"]
 
     def test_no_order_anomaly_when_column_sets_differ(self, tmp_path, engine, config, layer):
-        frame_a = engine.read(
-            _write_csv(tmp_path, "a.csv", {"a": [1], "b": [2], "c": [3]})
-        )
-        frame_b = engine.read(
-            _write_csv(tmp_path, "b.csv", {"a": [1], "b": [2], "d": [4]})
-        )
+        frame_a = engine.read(_write_csv(tmp_path, "a.csv", {"a": [1], "b": [2], "c": [3]}))
+        frame_b = engine.read(_write_csv(tmp_path, "b.csv", {"a": [1], "b": [2], "d": [4]}))
 
         anomalies = layer.compare(engine, frame_a, frame_b, config)
 
         assert not any("order_a" in a.evidence for a in anomalies)
 
     def test_no_order_anomaly_when_order_matches(self, tmp_path, engine, config, layer):
-        frame_a = engine.read(
-            _write_csv(tmp_path, "a.csv", {"a": [1], "b": [2], "c": [3]})
-        )
-        frame_b = engine.read(
-            _write_csv(tmp_path, "b.csv", {"a": [1], "b": [2], "c": [3]})
-        )
+        frame_a = engine.read(_write_csv(tmp_path, "a.csv", {"a": [1], "b": [2], "c": [3]}))
+        frame_b = engine.read(_write_csv(tmp_path, "b.csv", {"a": [1], "b": [2], "c": [3]}))
 
         anomalies = layer.compare(engine, frame_a, frame_b, config)
 

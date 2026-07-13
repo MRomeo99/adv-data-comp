@@ -13,13 +13,6 @@ from typing import Any, Optional
 
 import typer
 import yaml
-
-# Windows terminals often default stdout/stderr to a legacy codec (cp1252)
-# that can't encode the emoji/box-drawing characters Rich renders; force
-# UTF-8 so `compare` doesn't crash on a plain cmd.exe/PowerShell session.
-for _stream in (sys.stdout, sys.stderr):
-    if hasattr(_stream, "reconfigure"):
-        _stream.reconfigure(encoding="utf-8", errors="replace")
 from rich.console import Console
 from rich.table import Table
 
@@ -30,6 +23,13 @@ from adv_data_comp.engine.base import AbstractEngine
 from adv_data_comp.engine.duckdb_engine import DuckDBEngine
 from adv_data_comp.engine.polars_engine import PolarsEngine
 from adv_data_comp.formatters.terminal import TerminalFormatter
+
+# Windows terminals often default stdout/stderr to a legacy codec (cp1252)
+# that can't encode the emoji/box-drawing characters Rich renders; force
+# UTF-8 so `compare` doesn't crash on a plain cmd.exe/PowerShell session.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
 
 app = typer.Typer(help="Universal data file comparison and anomaly detection.")
 
@@ -112,14 +112,18 @@ def _select_single_engine(path: Path, memory_threshold_mb: float) -> AbstractEng
 
 @app.command()
 def compare(
-    file_a: str = typer.Argument(..., help='Path to first file (the "expected" or "reference" file).'),
+    file_a: str = typer.Argument(
+        ..., help='Path to first file (the "expected" or "reference" file).'
+    ),
     file_b: str = typer.Argument(..., help='Path to second file (the "actual" or "new" file).'),
     key: Optional[str] = typer.Option(None, "--key", help="Key column for row-level comparison."),
     layers: Optional[str] = typer.Option(
         None, "--layers", help="Comma-separated layers to run [default: all]."
     ),
     report: list[str] = typer.Option(
-        [], "--report", help="Output format(s): html, json, yaml, markdown, csv, dbt. Repeatable."
+        [],
+        "--report",
+        help="Output format(s): html, json, yaml, markdown, csv, dbt. Repeatable.",
     ),
     output_dir: Optional[str] = typer.Option(
         None, "--output-dir", help="Directory for report files [default: ./]."
@@ -140,7 +144,9 @@ def compare(
     memory_threshold_mb: Optional[float] = typer.Option(
         None, "--memory-threshold-mb", help="Engine switch threshold [default: 500]."
     ),
-    sheet: Optional[str] = typer.Option(None, "--sheet", help="Excel sheet name [default: first sheet]."),
+    sheet: Optional[str] = typer.Option(
+        None, "--sheet", help="Excel sheet name [default: first sheet]."
+    ),
     no_color: bool = typer.Option(False, "--no-color", help="Disable Rich terminal formatting."),
     quiet: bool = typer.Option(False, "--quiet", help="Suppress terminal output (for CI use)."),
     fail_on_critical: Optional[bool] = typer.Option(
@@ -148,7 +154,9 @@ def compare(
         "--fail-on-critical/--no-fail-on-critical",
         help="Exit code 1 if any critical anomalies found.",
     ),
-    config: Optional[Path] = typer.Option(None, "--config", help="Load options from YAML config file."),
+    config: Optional[Path] = typer.Option(
+        None, "--config", help="Load options from YAML config file."
+    ),
 ) -> None:
     """Compare FILE_A (reference) against FILE_B (new/actual) across the five layers."""
     file_dict = _load_config_file(config)
@@ -166,7 +174,10 @@ def compare(
         fuzzy_threshold, file_dict, "fuzzy_threshold", _CONFIG_DEFAULTS.fuzzy_threshold
     )
     merged_memory_threshold_mb = _pick(
-        memory_threshold_mb, file_dict, "memory_threshold_mb", _CONFIG_DEFAULTS.memory_threshold_mb
+        memory_threshold_mb,
+        file_dict,
+        "memory_threshold_mb",
+        _CONFIG_DEFAULTS.memory_threshold_mb,
     )
     merged_sheet = _pick(sheet, file_dict, "sheet", _CONFIG_DEFAULTS.sheet)
     merged_fail_on_critical = _pick(fail_on_critical, file_dict, "fail_on_critical", False)
@@ -208,7 +219,9 @@ def compare(
 def profile(
     file: str = typer.Argument(..., help="Path to the file to profile."),
     memory_threshold_mb: float = typer.Option(
-        _CONFIG_DEFAULTS.memory_threshold_mb, "--memory-threshold-mb", help="Engine switch threshold."
+        _CONFIG_DEFAULTS.memory_threshold_mb,
+        "--memory-threshold-mb",
+        help="Engine switch threshold.",
     ),
 ) -> None:
     """Profile a single file (no comparison): column name, dtype, null rate, distinct count."""
@@ -239,7 +252,9 @@ def profile(
 def schema(
     file: str = typer.Argument(..., help="Path to the file to inspect."),
     memory_threshold_mb: float = typer.Option(
-        _CONFIG_DEFAULTS.memory_threshold_mb, "--memory-threshold-mb", help="Engine switch threshold."
+        _CONFIG_DEFAULTS.memory_threshold_mb,
+        "--memory-threshold-mb",
+        help="Engine switch threshold.",
     ),
 ) -> None:
     """Print the inferred schema (column name + normalized category) for a single file."""

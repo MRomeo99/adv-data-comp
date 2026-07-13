@@ -154,9 +154,7 @@ class TestHtmlFormatterSchemaTable:
 
     def test_non_schema_result_omits_schema_table(self):
         result = ComparisonResult(
-            anomalies=[
-                _anomaly(layer="statistical", severity="warning", column="revenue")
-            ],
+            anomalies=[_anomaly(layer="statistical", severity="warning", column="revenue")],
             meta=_meta(),
         )
         html = HtmlFormatter().format(result)

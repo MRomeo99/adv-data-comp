@@ -7,7 +7,7 @@ from pathlib import Path
 import duckdb
 
 from adv_data_comp.engine.base import AbstractEngine
-from adv_data_comp.models import ColumnProfile, ColumnType
+from adv_data_comp.models import ColumnCategory, ColumnProfile, ColumnType
 
 _NUMERIC_TYPES = {
     "TINYINT",
@@ -24,7 +24,7 @@ _NUMERIC_TYPES = {
     "DECIMAL",
 }
 
-_CATEGORY_BY_DUCKDB_TYPE = {
+_CATEGORY_BY_DUCKDB_TYPE: dict[str, ColumnCategory] = {
     "TINYINT": "int",
     "SMALLINT": "int",
     "INTEGER": "int",
@@ -44,7 +44,7 @@ _CATEGORY_BY_DUCKDB_TYPE = {
 }
 
 
-def _categorize_duckdb_dtype(raw: str) -> str:
+def _categorize_duckdb_dtype(raw: str) -> ColumnCategory:
     base = raw.split("(")[0].upper()
     return _CATEGORY_BY_DUCKDB_TYPE.get(base, "other")
 
@@ -98,22 +98,26 @@ class DuckDBEngine(AbstractEngine):
         dtype = dtype_row[0] if dtype_row else "UNKNOWN"
         is_numeric = dtype.split("(")[0].upper() in _NUMERIC_TYPES
 
-        row_count, null_count, distinct_count = con.sql(
+        count_row = con.sql(
             f'SELECT COUNT(*), COUNT(*) FILTER (WHERE "{column}" IS NULL), '
             f'COUNT(DISTINCT "{column}") FROM {view}'
         ).fetchone()
+        assert count_row is not None  # COUNT(*) always returns exactly one row
+        row_count, null_count, distinct_count = count_row
 
         min_value = max_value = None
         if row_count > 0:
-            min_value, max_value = con.sql(
-                f'SELECT MIN("{column}"), MAX("{column}") FROM {view}'
-            ).fetchone()
+            minmax_row = con.sql(f'SELECT MIN("{column}"), MAX("{column}") FROM {view}').fetchone()
+            assert minmax_row is not None
+            min_value, max_value = minmax_row
 
         mean = stddev = None
         if is_numeric and row_count > 0:
-            mean, stddev = con.sql(
+            stats_row = con.sql(
                 f'SELECT AVG("{column}"), STDDEV("{column}") FROM {view}'
             ).fetchone()
+            assert stats_row is not None
+            mean, stddev = stats_row
 
         return ColumnProfile(
             name=column,
@@ -128,7 +132,9 @@ class DuckDBEngine(AbstractEngine):
         )
 
     def row_count(self, frame: DuckDBFrame) -> int:
-        return frame.con.sql(f"SELECT COUNT(*) FROM {frame.view_name}").fetchone()[0]
+        row = frame.con.sql(f"SELECT COUNT(*) FROM {frame.view_name}").fetchone()
+        assert row is not None  # COUNT(*) always returns exactly one row
+        return row[0]
 
     def find_missing_keys(
         self, frame_a: DuckDBFrame, frame_b: DuckDBFrame, key: str

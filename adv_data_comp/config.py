@@ -13,6 +13,10 @@ def _default_memory_threshold_mb() -> float:
     return float(raw) if raw else 500.0
 
 
+def _default_layers() -> list[Layer]:
+    return ["format", "schema", "semantic", "statistical", "referential"]
+
+
 class OutputFormat(str, Enum):
     HTML = "html"
     JSON = "json"
@@ -24,9 +28,7 @@ class OutputFormat(str, Enum):
 
 class ComparisonConfig(BaseModel):
     key: str | None = None
-    layers: list[Layer] = Field(
-        default_factory=lambda: ["format", "schema", "semantic", "statistical", "referential"]
-    )
+    layers: list[Layer] = Field(default_factory=_default_layers)
     fuzzy_threshold: float = 0.80
     memory_threshold_mb: float = Field(default_factory=_default_memory_threshold_mb)
     explain: bool = False

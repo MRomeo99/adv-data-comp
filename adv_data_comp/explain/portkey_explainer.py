@@ -186,9 +186,7 @@ class PortkeyExplainerClient:
 
     def explain(self, anomalies_batch: list[Anomaly], prompt_id: str) -> dict[int, str]:
         variables = {
-            "anomalies_json": json.dumps(
-                [a.model_dump(mode="json") for a in anomalies_batch]
-            ),
+            "anomalies_json": json.dumps([a.model_dump(mode="json") for a in anomalies_batch]),
         }
 
         response = self._client.prompts.completions.create(

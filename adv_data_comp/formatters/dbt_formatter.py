@@ -106,10 +106,7 @@ class DbtFormatter(AbstractFormatter):
             if test_name not in existing:
                 existing.append(test_name)
 
-        return [
-            {"name": column, "tests": tests}
-            for column, tests in tests_by_column.items()
-        ]
+        return [{"name": column, "tests": tests} for column, tests in tests_by_column.items()]
 
     @staticmethod
     def _map_anomaly_to_test(anomaly: Anomaly) -> str | None:

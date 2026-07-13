@@ -240,9 +240,7 @@ class TestStringChecks:
         assert empty_anomalies[0].evidence["empty_count_b"] == 5
 
     def test_top_values_helper_equivalent_across_engines(self, tmp_path, engine):
-        path = _write_csv(
-            tmp_path, "a.csv", {"name": ["a", "a", "a", "b", "b", "c"]}
-        )
+        path = _write_csv(tmp_path, "a.csv", {"name": ["a", "a", "a", "b", "b", "c"]})
         frame = engine.read(path)
 
         top = StatisticalLayer._top_values(frame, "name", limit=2)
@@ -270,9 +268,7 @@ class TestDateChecks:
         assert range_anomalies[0].severity == Severity.INFO
 
     def test_warning_anomaly_when_gap_detected(self, tmp_path, engine):
-        dates = [
-            datetime.date(2024, 1, 1) + datetime.timedelta(days=i) for i in range(10)
-        ]
+        dates = [datetime.date(2024, 1, 1) + datetime.timedelta(days=i) for i in range(10)]
         # introduce a large gap after the 5th date
         dates = dates[:5] + [dates[4] + datetime.timedelta(days=30)] + dates[5:9]
         rows_a = {"signup_date": [d.isoformat() for d in dates]}
@@ -305,7 +301,11 @@ class TestMatchedColumns:
 
         anomalies_without_mapping = layer.compare(engine, frame_a, frame_b, ComparisonConfig())
         anomalies_with_mapping = layer.compare(
-            engine, frame_a, frame_b, ComparisonConfig(), column_mapping={"cust_id": "customer_id"}
+            engine,
+            frame_a,
+            frame_b,
+            ComparisonConfig(),
+            column_mapping={"cust_id": "customer_id"},
         )
 
         assert anomalies_without_mapping == []

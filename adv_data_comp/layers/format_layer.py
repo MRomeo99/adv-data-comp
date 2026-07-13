@@ -183,9 +183,7 @@ class FormatLayer(AbstractLayer):
                 layer="format",
                 severity=Severity.INFO,
                 column="__file__",
-                message=(
-                    f"File encoding differs: file A is {encoding_a}, file B is {encoding_b}"
-                ),
+                message=(f"File encoding differs: file A is {encoding_a}, file B is {encoding_b}"),
                 evidence={"encoding_a": encoding_a, "encoding_b": encoding_b},
             )
         ]
@@ -206,7 +204,10 @@ class FormatLayer(AbstractLayer):
                     f"Line endings differ: file A uses {line_ending_a}, "
                     f"file B uses {line_ending_b}"
                 ),
-                evidence={"line_ending_a": line_ending_a, "line_ending_b": line_ending_b},
+                evidence={
+                    "line_ending_a": line_ending_a,
+                    "line_ending_b": line_ending_b,
+                },
             )
         ]
 

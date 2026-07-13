@@ -7,7 +7,6 @@ import yaml
 from fastapi.testclient import TestClient
 
 from adv_data_comp.comparator import Comparator
-from adv_data_comp.config import ComparisonConfig
 from adv_data_comp.serve.app import app
 
 client = TestClient(app)
@@ -50,7 +49,14 @@ class TestFormats:
 
         assert response.status_code == 200
         body = response.json()
-        assert set(body["formats"]) == {"html", "json", "yaml", "markdown", "csv", "dbt"}
+        assert set(body["formats"]) == {
+            "html",
+            "json",
+            "yaml",
+            "markdown",
+            "csv",
+            "dbt",
+        }
 
 
 class TestCompare:

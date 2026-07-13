@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from rich.console import Console
 
 from adv_data_comp.formatters.terminal import TerminalFormatter
 from adv_data_comp.models import (
@@ -42,12 +41,42 @@ def _meta(engine: str = "duckdb", runtime: float = 4.2) -> ComparisonMeta:
 
 def _build_result_all_severities() -> ComparisonResult:
     anomalies = [
-        _anomaly("schema", Severity.CRITICAL, "customer_id", "Column `customer_id` type: int64 -> string"),
-        _anomaly("referential", Severity.CRITICAL, "customer_id", "3,847 rows in file A not found in file B"),
-        _anomaly("statistical", Severity.WARNING, "revenue", "null rate 2.1% -> 14.8% (+12.7%)"),
-        _anomaly("semantic", Severity.WARNING, "cust_email", "cust_email <-> customer_email (similarity: 0.91)"),
-        _anomaly("schema", Severity.INFO, "*", "Column order differs (3 columns repositioned)"),
-        _anomaly("format", Severity.SUGGESTION, "full_name", "`full_name` in A may split into first/last in B"),
+        _anomaly(
+            "schema",
+            Severity.CRITICAL,
+            "customer_id",
+            "Column `customer_id` type: int64 -> string",
+        ),
+        _anomaly(
+            "referential",
+            Severity.CRITICAL,
+            "customer_id",
+            "3,847 rows in file A not found in file B",
+        ),
+        _anomaly(
+            "statistical",
+            Severity.WARNING,
+            "revenue",
+            "null rate 2.1% -> 14.8% (+12.7%)",
+        ),
+        _anomaly(
+            "semantic",
+            Severity.WARNING,
+            "cust_email",
+            "cust_email <-> customer_email (similarity: 0.91)",
+        ),
+        _anomaly(
+            "schema",
+            Severity.INFO,
+            "*",
+            "Column order differs (3 columns repositioned)",
+        ),
+        _anomaly(
+            "format",
+            Severity.SUGGESTION,
+            "full_name",
+            "`full_name` in A may split into first/last in B",
+        ),
     ]
     return ComparisonResult(anomalies=anomalies, meta=_meta())
 

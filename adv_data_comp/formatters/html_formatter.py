@@ -135,7 +135,9 @@ def _render_explanation(explanation: str | None) -> str:
 
 
 def _render_card(anomaly: Anomaly) -> str:
-    severity = anomaly.severity.value if hasattr(anomaly.severity, "value") else str(anomaly.severity)
+    severity = (
+        anomaly.severity.value if hasattr(anomaly.severity, "value") else str(anomaly.severity)
+    )
     summary_text = f"[{esc(anomaly.layer)}] {esc(anomaly.column)}: {esc(anomaly.message)}"
     body = _render_evidence(anomaly.evidence) + _render_explanation(anomaly.explanation)
     return (
@@ -152,7 +154,9 @@ def _render_anomaly_sections(result: ComparisonResult) -> str:
 
     by_severity: dict[str, list[Anomaly]] = {sev: [] for sev in _SEVERITY_ORDER}
     for anomaly in result.anomalies:
-        sev = anomaly.severity.value if hasattr(anomaly.severity, "value") else str(anomaly.severity)
+        sev = (
+            anomaly.severity.value if hasattr(anomaly.severity, "value") else str(anomaly.severity)
+        )
         by_severity.setdefault(sev, []).append(anomaly)
 
     sections = []
@@ -210,12 +214,7 @@ def _render_stat_charts(result: ComparisonResult) -> str:
             continue
         stat_name, val_a, val_b = pair
         svg = _svg_bar_chart(stat_name, val_a, val_b)
-        charts.append(
-            '<div class="stat-chart-card">'
-            f"<h3>{esc(a.column)}</h3>"
-            f"{svg}"
-            "</div>"
-        )
+        charts.append('<div class="stat-chart-card">' f"<h3>{esc(a.column)}</h3>" f"{svg}" "</div>")
     if not charts:
         return ""
     return (
