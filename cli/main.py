@@ -7,11 +7,19 @@ command/option contract this module implements.
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 from typing import Any, Optional
 
 import typer
 import yaml
+
+# Windows terminals often default stdout/stderr to a legacy codec (cp1252)
+# that can't encode the emoji/box-drawing characters Rich renders; force
+# UTF-8 so `compare` doesn't crash on a plain cmd.exe/PowerShell session.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
 from rich.console import Console
 from rich.table import Table
 

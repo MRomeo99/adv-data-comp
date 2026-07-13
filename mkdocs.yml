@@ -1,0 +1,8 @@
+site_name: adv-data-comp
+site_description: Universal data file comparison and anomaly detection for data engineers
+repo_url: https://github.com/MRomeo99/adv-data-comp
+theme:
+  name: material
+nav:
+  - Home: index.md
+docs_dir: docs

@@ -30,6 +30,7 @@ adv-data-comp = "cli.main:app"
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov", "ruff", "black", "mypy", "httpx"]
+docs = ["mkdocs", "mkdocs-material"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["adv_data_comp", "cli"]
