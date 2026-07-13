@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -62,6 +63,36 @@ class ComparisonResult(BaseModel):
     @property
     def schema_match(self) -> bool:
         return not any(a.layer == "schema" for a in self.anomalies)
+
+    def _render_and_write(self, formatter_cls_path: tuple[str, str], path: str) -> str:
+        import importlib
+
+        module_name, class_name = formatter_cls_path
+        module = importlib.import_module(module_name)
+        formatter = getattr(module, class_name)()
+        content = formatter.format(self)
+        Path(path).write_text(content, encoding="utf-8")
+        return content
+
+    def to_json(self, path: str) -> str:
+        return self._render_and_write(("adv_data_comp.formatters.json_formatter", "JsonFormatter"), path)
+
+    def to_yaml(self, path: str) -> str:
+        return self._render_and_write(("adv_data_comp.formatters.yaml_formatter", "YamlFormatter"), path)
+
+    def to_html(self, path: str) -> str:
+        return self._render_and_write(("adv_data_comp.formatters.html_formatter", "HtmlFormatter"), path)
+
+    def to_markdown(self, path: str) -> str:
+        return self._render_and_write(
+            ("adv_data_comp.formatters.markdown_formatter", "MarkdownFormatter"), path
+        )
+
+    def to_csv(self, path: str) -> str:
+        return self._render_and_write(("adv_data_comp.formatters.csv_formatter", "CsvFormatter"), path)
+
+    def to_dbt_yaml(self, path: str) -> str:
+        return self._render_and_write(("adv_data_comp.formatters.dbt_formatter", "DbtFormatter"), path)
 
 
 ColumnCategory = Literal["int", "float", "string", "bool", "date", "datetime", "other"]

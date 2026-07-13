@@ -90,6 +90,34 @@ class TestComparisonResult:
         result = ComparisonResult(anomalies=[])
         assert result.meta is None
 
+    def test_to_json_writes_a_file_and_returns_the_content(self, tmp_path):
+        result = ComparisonResult(anomalies=[self._anomaly("critical")])
+        out = tmp_path / "out.json"
+
+        content = result.to_json(str(out))
+
+        assert out.exists()
+        assert out.read_text() == content
+        assert "critical" in content
+
+    def test_to_html_writes_a_file(self, tmp_path):
+        result = ComparisonResult(anomalies=[self._anomaly("warning")])
+        out = tmp_path / "out.html"
+
+        result.to_html(str(out))
+
+        assert out.exists()
+        assert "<html" in out.read_text().lower() or "<!doctype" in out.read_text().lower()
+
+    def test_to_dbt_yaml_writes_a_file(self, tmp_path):
+        result = ComparisonResult(anomalies=[])
+        out = tmp_path / "schema.yml"
+
+        result.to_dbt_yaml(str(out))
+
+        assert out.exists()
+        assert "models" in out.read_text()
+
     def test_meta_can_be_attached(self):
         meta = ComparisonMeta(
             comparison_id="abc-123",
