@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
-from adv_data_comp.models import ColumnProfile
+from adv_data_comp.models import ColumnProfile, ColumnType
 
 EngineFrame = Any
 
@@ -19,6 +19,13 @@ class AbstractEngine(ABC):
 
     @abstractmethod
     def read(self, path: Path) -> EngineFrame: ...
+
+    @abstractmethod
+    def schema(self, frame: EngineFrame) -> dict[str, ColumnType]:
+        """Returns an ordered mapping of column name to its normalized type,
+        so schema comparisons work identically regardless of which engine
+        produced the frame."""
+        ...
 
     @abstractmethod
     def profile_column(self, frame: EngineFrame, column: str) -> ColumnProfile: ...

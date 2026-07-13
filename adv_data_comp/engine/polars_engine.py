@@ -5,7 +5,29 @@ from pathlib import Path
 import polars as pl
 
 from adv_data_comp.engine.base import AbstractEngine, EngineFrame
-from adv_data_comp.models import ColumnProfile
+from adv_data_comp.models import ColumnProfile, ColumnType
+
+_CATEGORY_BY_POLARS_BASE = {
+    "Int8": "int",
+    "Int16": "int",
+    "Int32": "int",
+    "Int64": "int",
+    "UInt8": "int",
+    "UInt16": "int",
+    "UInt32": "int",
+    "UInt64": "int",
+    "Float32": "float",
+    "Float64": "float",
+    "Boolean": "bool",
+    "Date": "date",
+    "Datetime": "datetime",
+    "Utf8": "string",
+    "String": "string",
+}
+
+
+def _categorize_polars_dtype(dtype: pl.DataType) -> str:
+    return _CATEGORY_BY_POLARS_BASE.get(dtype.base_type().__name__, "other")
 
 
 class PolarsEngine(AbstractEngine):
@@ -18,6 +40,12 @@ class PolarsEngine(AbstractEngine):
         if suffix == ".parquet":
             return pl.read_parquet(path)
         raise ValueError(f"Unsupported file format: {suffix}")
+
+    def schema(self, frame: pl.DataFrame) -> dict[str, ColumnType]:
+        return {
+            name: ColumnType(raw=str(dtype), category=_categorize_polars_dtype(dtype))
+            for name, dtype in frame.schema.items()
+        }
 
     def profile_column(self, frame: pl.DataFrame, column: str) -> ColumnProfile:
         series = frame[column]

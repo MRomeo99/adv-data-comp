@@ -7,7 +7,7 @@ from pathlib import Path
 import duckdb
 
 from adv_data_comp.engine.base import AbstractEngine
-from adv_data_comp.models import ColumnProfile
+from adv_data_comp.models import ColumnProfile, ColumnType
 
 _NUMERIC_TYPES = {
     "TINYINT",
@@ -23,6 +23,31 @@ _NUMERIC_TYPES = {
     "DOUBLE",
     "DECIMAL",
 }
+
+_CATEGORY_BY_DUCKDB_TYPE = {
+    "TINYINT": "int",
+    "SMALLINT": "int",
+    "INTEGER": "int",
+    "BIGINT": "int",
+    "HUGEINT": "int",
+    "UTINYINT": "int",
+    "USMALLINT": "int",
+    "UINTEGER": "int",
+    "UBIGINT": "int",
+    "FLOAT": "float",
+    "DOUBLE": "float",
+    "DECIMAL": "float",
+    "BOOLEAN": "bool",
+    "DATE": "date",
+    "TIMESTAMP": "datetime",
+    "VARCHAR": "string",
+}
+
+
+def _categorize_duckdb_dtype(raw: str) -> str:
+    base = raw.split("(")[0].upper()
+    return _CATEGORY_BY_DUCKDB_TYPE.get(base, "other")
+
 
 _view_counter = itertools.count()
 
@@ -52,6 +77,16 @@ class DuckDBEngine(AbstractEngine):
         view_name = f"frame_{next(_view_counter)}"
         self._con.sql(f"CREATE OR REPLACE VIEW {view_name} AS SELECT * FROM {reader}")
         return DuckDBFrame(con=self._con, view_name=view_name)
+
+    def schema(self, frame: DuckDBFrame) -> dict[str, ColumnType]:
+        rows = frame.con.sql(
+            f"SELECT column_name, data_type FROM information_schema.columns "
+            f"WHERE table_name = '{frame.view_name}' ORDER BY ordinal_position"
+        ).fetchall()
+        return {
+            name: ColumnType(raw=dtype, category=_categorize_duckdb_dtype(dtype))
+            for name, dtype in rows
+        }
 
     def profile_column(self, frame: DuckDBFrame, column: str) -> ColumnProfile:
         con, view = frame.con, frame.view_name

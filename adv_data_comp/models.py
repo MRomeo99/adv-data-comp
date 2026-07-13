@@ -64,6 +64,14 @@ class ComparisonResult(BaseModel):
         return not any(a.layer == "schema" for a in self.anomalies)
 
 
+ColumnCategory = Literal["int", "float", "string", "bool", "date", "datetime", "other"]
+
+
+class ColumnType(BaseModel):
+    raw: str
+    category: ColumnCategory
+
+
 class ColumnProfile(BaseModel):
     name: str
     dtype: str
