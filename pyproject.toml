@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "adv-data-comp"
+version = "0.1.0"
+description = "Universal data file comparison and anomaly detection"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "polars>=0.20",
+    "duckdb>=0.10",
+    "typer>=0.12",
+    "rich>=13",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "openpyxl>=3.1",
+    "python-Levenshtein>=0.25",
+    "pydantic>=2.0",
+    "jinja2>=3.1",
+    "pyyaml>=6.0",
+    "portkey-ai>=1.0",
+]
+
+[project.scripts]
+adv-data-comp = "cli.main:app"
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "ruff", "black", "mypy", "httpx"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["adv_data_comp", "cli"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
