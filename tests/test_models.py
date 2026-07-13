@@ -1,7 +1,13 @@
 import pytest
 from pydantic import ValidationError
 
-from adv_data_comp.models import Anomaly, ComparisonResult, Severity
+from adv_data_comp.models import (
+    Anomaly,
+    ComparisonMeta,
+    ComparisonResult,
+    FileMeta,
+    Severity,
+)
 
 
 class TestAnomaly:
@@ -79,3 +85,20 @@ class TestComparisonResult:
         non_schema = Anomaly(layer="statistical", severity="warning", column="id", message="x")
         result = ComparisonResult(anomalies=[non_schema])
         assert result.schema_match is True
+
+    def test_meta_is_optional_and_defaults_to_none(self):
+        result = ComparisonResult(anomalies=[])
+        assert result.meta is None
+
+    def test_meta_can_be_attached(self):
+        meta = ComparisonMeta(
+            comparison_id="abc-123",
+            file_a=FileMeta(path="a.parquet", format="parquet", rows=100, size_mb=1.2),
+            file_b=FileMeta(path="b.csv", format="csv", rows=98, size_mb=1.1),
+            engine="polars",
+            layers_run=["format", "schema"],
+            runtime_seconds=0.5,
+        )
+        result = ComparisonResult(anomalies=[], meta=meta)
+        assert result.meta.engine == "polars"
+        assert result.meta.file_a.rows == 100

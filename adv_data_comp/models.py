@@ -24,8 +24,25 @@ class Anomaly(BaseModel):
     explanation: str | None = None
 
 
+class FileMeta(BaseModel):
+    path: str
+    format: str
+    rows: int
+    size_mb: float
+
+
+class ComparisonMeta(BaseModel):
+    comparison_id: str
+    file_a: FileMeta
+    file_b: FileMeta
+    engine: str
+    layers_run: list[Layer]
+    runtime_seconds: float
+
+
 class ComparisonResult(BaseModel):
     anomalies: list[Anomaly] = Field(default_factory=list)
+    meta: ComparisonMeta | None = None
 
     @property
     def summary(self) -> dict[str, int]:
