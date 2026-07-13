@@ -36,7 +36,7 @@ class PolarsEngine(AbstractEngine):
     def read(self, path: Path) -> EngineFrame:
         suffix = path.suffix.lower()
         if suffix == ".csv":
-            return pl.read_csv(path)
+            return pl.read_csv(path, try_parse_dates=True)
         if suffix == ".parquet":
             return pl.read_parquet(path)
         raise ValueError(f"Unsupported file format: {suffix}")
