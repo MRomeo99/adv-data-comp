@@ -1,27 +1,108 @@
 from __future__ import annotations
 
+import itertools
+from dataclasses import dataclass
 from pathlib import Path
 
-from adv_data_comp.engine.base import AbstractEngine, EngineFrame
+import duckdb
+
+from adv_data_comp.engine.base import AbstractEngine
 from adv_data_comp.models import ColumnProfile
+
+_NUMERIC_TYPES = {
+    "TINYINT",
+    "SMALLINT",
+    "INTEGER",
+    "BIGINT",
+    "HUGEINT",
+    "UTINYINT",
+    "USMALLINT",
+    "UINTEGER",
+    "UBIGINT",
+    "FLOAT",
+    "DOUBLE",
+    "DECIMAL",
+}
+
+_view_counter = itertools.count()
+
+
+@dataclass
+class DuckDBFrame:
+    con: duckdb.DuckDBPyConnection
+    view_name: str
 
 
 class DuckDBEngine(AbstractEngine):
     """Streaming engine for large files (combined size > threshold), never
     loading the full file into memory."""
 
-    def read(self, path: Path) -> EngineFrame:
-        raise NotImplementedError("DuckDBEngine.read is implemented in a later slice")
+    def __init__(self) -> None:
+        self._con = duckdb.connect(database=":memory:")
 
-    def profile_column(self, frame: EngineFrame, column: str) -> ColumnProfile:
-        raise NotImplementedError("DuckDBEngine.profile_column is implemented in a later slice")
+    def read(self, path: Path) -> DuckDBFrame:
+        suffix = path.suffix.lower()
+        if suffix == ".csv":
+            reader = f"read_csv_auto('{path.as_posix()}')"
+        elif suffix == ".parquet":
+            reader = f"read_parquet('{path.as_posix()}')"
+        else:
+            raise ValueError(f"Unsupported file format: {suffix}")
 
-    def row_count(self, frame: EngineFrame) -> int:
-        raise NotImplementedError("DuckDBEngine.row_count is implemented in a later slice")
+        view_name = f"frame_{next(_view_counter)}"
+        self._con.sql(f"CREATE OR REPLACE VIEW {view_name} AS SELECT * FROM {reader}")
+        return DuckDBFrame(con=self._con, view_name=view_name)
+
+    def profile_column(self, frame: DuckDBFrame, column: str) -> ColumnProfile:
+        con, view = frame.con, frame.view_name
+
+        dtype_row = con.sql(
+            f"SELECT data_type FROM information_schema.columns "
+            f"WHERE table_name = '{view}' AND column_name = '{column}'"
+        ).fetchone()
+        dtype = dtype_row[0] if dtype_row else "UNKNOWN"
+        is_numeric = dtype.split("(")[0].upper() in _NUMERIC_TYPES
+
+        row_count, null_count, distinct_count = con.sql(
+            f'SELECT COUNT(*), COUNT(*) FILTER (WHERE "{column}" IS NULL), '
+            f'COUNT(DISTINCT "{column}") FROM {view}'
+        ).fetchone()
+
+        min_value = max_value = None
+        if row_count > 0:
+            min_value, max_value = con.sql(
+                f'SELECT MIN("{column}"), MAX("{column}") FROM {view}'
+            ).fetchone()
+
+        mean = stddev = None
+        if is_numeric and row_count > 0:
+            mean, stddev = con.sql(
+                f'SELECT AVG("{column}"), STDDEV("{column}") FROM {view}'
+            ).fetchone()
+
+        return ColumnProfile(
+            name=column,
+            dtype=dtype,
+            null_count=null_count,
+            row_count=row_count,
+            distinct_count=distinct_count,
+            min_value=min_value,
+            max_value=max_value,
+            mean=float(mean) if mean is not None else None,
+            stddev=float(stddev) if stddev is not None else None,
+        )
+
+    def row_count(self, frame: DuckDBFrame) -> int:
+        return frame.con.sql(f"SELECT COUNT(*) FROM {frame.view_name}").fetchone()[0]
 
     def find_missing_keys(
-        self, frame_a: EngineFrame, frame_b: EngineFrame, key: str
-    ) -> EngineFrame:
-        raise NotImplementedError(
-            "DuckDBEngine.find_missing_keys is implemented in a later slice"
+        self, frame_a: DuckDBFrame, frame_b: DuckDBFrame, key: str
+    ) -> DuckDBFrame:
+        con = frame_a.con
+        view_name = f"frame_{next(_view_counter)}"
+        con.sql(
+            f"CREATE OR REPLACE VIEW {view_name} AS "
+            f'SELECT * FROM {frame_a.view_name} WHERE "{key}" NOT IN '
+            f'(SELECT "{key}" FROM {frame_b.view_name})'
         )
+        return DuckDBFrame(con=con, view_name=view_name)
