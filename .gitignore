@@ -9,5 +9,6 @@ htmlcov/
 *.egg-info/
 build/
 dist/
-tests/fixtures/*.parquet
-tests/fixtures/*.xlsx
+# Small fixture files (parquet/csv) are committed intentionally; only the
+# generated >500MB engine-selection fixture is excluded.
+tests/fixtures/large_file_a.parquet
