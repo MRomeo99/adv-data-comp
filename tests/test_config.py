@@ -14,6 +14,20 @@ class TestComparisonConfig:
         assert config.output_dir == "./"
         assert config.severity_filter is None
 
+    def test_memory_threshold_mb_defaults_from_env_var(self, monkeypatch):
+        monkeypatch.setenv("ADV_DATA_COMP_MEMORY_THRESHOLD_MB", "0")
+
+        config = ComparisonConfig()
+
+        assert config.memory_threshold_mb == 0
+
+    def test_explicit_memory_threshold_mb_overrides_env_var(self, monkeypatch):
+        monkeypatch.setenv("ADV_DATA_COMP_MEMORY_THRESHOLD_MB", "0")
+
+        config = ComparisonConfig(memory_threshold_mb=250)
+
+        assert config.memory_threshold_mb == 250
+
     def test_accepts_full_configuration(self):
         config = ComparisonConfig(
             key="customer_id",
