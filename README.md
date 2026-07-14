@@ -213,6 +213,12 @@ code changes, since every layer only ever calls the abstract interface.
 - [ADR 003 — Levenshtein + token similarity for fuzzy column matching](docs/adr/003-fuzzy-matching-approach.md)
 - [ADR 004 — dbt schema.yml as an output format](docs/adr/004-dbt-output-format.md)
 
+For the structural/pattern decisions above individual tool choices — why
+three interfaces share one engine, why layers fail independently, why
+there's no live Portkey call in the test suite, and two real bugs manual
+verification caught that the test suite didn't — see
+[Design Decisions](docs/design-decisions.md).
+
 ## Status
 
 This project is under active development and not yet published to PyPI.

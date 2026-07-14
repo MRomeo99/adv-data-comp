@@ -5,4 +5,5 @@ theme:
   name: material
 nav:
   - Home: index.md
+  - Design Decisions: design-decisions.md
 docs_dir: docs
